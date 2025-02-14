@@ -144,6 +144,47 @@ console.log(
 
 Allows users to buy tokens with SOL, verifying sufficient funds and transferring tokens securely.
 
+#### Accounts for `buy_tokens` Function
+
+When calling the `buy_tokens` function of the Dyawn Presale Smart Contract, Web3 developers must provide the following accounts:
+
+| Account               | Type     | Mutable | Signer | Description                                                                                                                                    |
+| --------------------- | -------- | ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `presale`             | `pubkey` | ✅      |        | It is from the initialize function.                                                                                                            |
+| `buyer`               | `pubkey` | ✅      | ✅     | Wallet address of the buyer purchasing the tokens.                                                                                             |
+| `presaleTokenAccount` | `pubkey` | ✅      |        | Token account holding presale tokens, associated with the mint and owned by the presale PDA. it will be provided from the initialize function. |
+| `buyerTokenAccount`   | `pubkey` | ✅      |        | Token account of the buyer where purchased tokens will be transferred. it should be generated from user wallet using solana web3.              |
+| `merchantAccount`     | `pubkey` | ✅      |        | Merchant’s wallet to receive SOL payments.                                                                                                     |
+| `systemProgram`       | `pubkey` |         |        | Solana System Program (`11111111111111111111111111111111`) for SOL transfers.                                                                  |
+| `tokenProgram`        | `pubkey` |         |        | Solana Token Program (`TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA`) for SPL token transfers.                                                  |
+
+#### How to get ATA from User Wallet using web3?
+
+```js
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddress } from "@solana/spl-token";
+
+// Function to get the buyer's associated token account
+async function getBuyerTokenAccount(walletAddress, mintAddress) {
+  const walletPubkey = new PublicKey(walletAddress);
+  const mintPubkey = new PublicKey(mintAddress);
+
+  const buyerTokenAccount = await getAssociatedTokenAddress(
+    mintPubkey, // Token mint address
+    walletPubkey // Owner wallet address
+  );
+
+  console.log("Buyer Token Account:", buyerTokenAccount.toBase58());
+  return buyerTokenAccount;
+}
+
+// Example usage
+const walletAddress = "BQUHqj6LgS38464fmTguhN6SRrTLucy1ggGGcefZrX...";
+const mintAddress = "ECxown6bSKDmM3TD6PbUHKzY6CYfzXgrx8UCA4...";
+
+getBuyerTokenAccount(walletAddress, mintAddress);
+```
+
 ### buy_tokens_by_stable_coin
 
 Enables token purchases using USDT/USDC, ensuring stable coin validity and transferring tokens accordingly.
@@ -167,3 +208,7 @@ Permits referrers to withdraw their earned tokens from the Referral Treasury aft
 ### refill_treasury
 
 Lets the admin add more tokens to the Referral Treasury within the supply cap limit.
+
+```
+
+```
