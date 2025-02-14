@@ -1,5 +1,5 @@
 # Dyawn Presale Smart Contract
-## Author: John Lee from Digital Heores
+## Author: John Lee at Digital Heores
 
 This is a Solana-based presale smart contract that allows users to purchase tokens using SOL, USDT, or USDC, manage sale stages, implement referral rewards, and more.
 It supports secure token sales with a PDA-based token authority and off-chain storage for influencer and referral management.
