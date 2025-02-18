@@ -1,4 +1,5 @@
 # Dyawn Presale Smart Contract
+
 ## Author: John Lee at Digital Heores
 
 This is a Solana-based presale smart contract that allows users to purchase tokens using SOL, USDT, or USDC, manage sale stages, implement referral rewards, and more.
@@ -394,3 +395,113 @@ Once liquidity wallets are created, they need to receive the allocated liquidity
 
 ✅ Minting & Funding Liquidity Wallets During Token Creation
 When minting DYAWN tokens, you can immediately send a portion to DEX & CEX liquidity wallets.
+
+## 5. Feedback on setBurnRate and Burn Mechanism
+
+You are right!
+The SPL Token Program includes a standard Burn function, which allows a wallet to destroy a specific amount of tokens from its own balance.
+This is a manual, admin-triggered process—it does not happen automatically on transactions or under specific conditions.
+
+### Why is setBurnRate Needed?
+
+The standard SPL Burn only allows manual burning, whereas setBurnRate introduces automatic burning based on token activity.
+
+### Differences Between SPL Standard Burn and Custom `setBurnRate` Mechanism
+
+| **Feature**          | **SPL Standard Burn**                | **Custom `setBurnRate` Mechanism**               |
+| -------------------- | ------------------------------------ | ------------------------------------------------ |
+| **How Burn Works**   | Admin manually calls `Burn` function | Automatically burns a percentage of transactions |
+| **When Tokens Burn** | Only when the admin executes it      | Happens during every transaction (buy/sell)      |
+| **Use Case**         | One-time or periodic burns           | Continuous deflationary supply reduction         |
+| **Flexibility**      | Requires admin action each time      | Adjustable burn rate via governance              |
+| **Decentralization** | Centralized control                  | Can be managed by DAO/governance                 |
+
+For now, We need Keeping a manual burn function for now and introducing setBurnRate later if they want.
+
+## 6. Response to Feedback on setReferralBonus
+
+### Pre-Sale Referral System Needs Flexibility
+
+The referral bonus may need adjustments based on market conditions or early buyer demand.
+
+Instead of hardcoding fixed values, setReferralBonus allows updates without redeploying the contract.
+
+Example: If initially set to 5%, but interest is low, it can be increased to 10% to attract more buyers.
+
+## 7. Feedback on allocateLiquidity & Liquidity Management Strategy
+
+✅ Liquidity should be managed custodially for security & simplicity – Instead of automating it, liquidity will be deposited manually based on market conditions.
+
+✅ Batch convert Web2 funds to Solana before sending to liquidity pools.
+
+I will Remove `allocateLiquidity` from the Tokenomics contract.
+
+## 8. About buyTokens and Internal Server Wallet
+
+### Does buyTokens Send Tokens to an Internal Server Wallet?
+
+✅ Yes, for Web2 purchases, tokens will be credited to an internal server wallet first.
+
+Web2 users do not receive DYAWN immediately because they may not have a Solana wallet at the time of purchase.
+
+The backend stores token balances in an internal database until users withdraw.
+
+Once a Web2 user creates or connects a Solana wallet, the backend transfers tokens from the internal server wallet to their personal wallet.
+
+✅ For Web3 purchases (Solana), tokens will be sent directly to the user's wallet.
+
+## 9. Response to Feedback on Web2 to Web3 Conversion & Detection
+
+- Web3 Transactions (SOL/USDC) Do Not Need Detection
+
+When a user purchases DYAWN with SOL/USDC via buyToken, the smart contract instantly processes the transaction.
+There is no need for backend detection because the transaction is executed on-chain in real time.
+
+- Web2 Payments Require a More Detailed Conversion Process
+
+### Web2 Payment Process
+
+| **Step** | **Process**                                                          | **Handled By**       |
+| -------- | -------------------------------------------------------------------- | -------------------- |
+| **1**    | User pays in Web2 currency (USDT ERC20, TRC20, BTC, etc.)            | Web2 Payment Gateway |
+| **2**    | Web2 payment is confirmed                                            | Web2 Payment Gateway |
+| **3**    | Conversion process starts (manual or automated swap to SOL/USDC)     | Payment Provider     |
+| **4**    | Converted funds (SOL/USDC) arrive in the treasury wallet             | Blockchain           |
+| **5**    | Backend verifies receipt of SOL/USDC and triggers token distribution | Backend              |
+| **6**    | DYAWN tokens are sent to the user’s Solana wallet                    | Smart Contract       |
+
+---
+
+✅ **Step 3 (conversion) must be acknowledged as a time-consuming process.**  
+✅ **Step 4 (detecting SOL/USDC) happens after conversion is completed, not before.**  
+✅ **Step 5 ensures DYAWN tokens are only distributed once the funds are received.**
+
+## 10. Handling Web2 Users & Privy.io Wallets
+
+Web2 users who log in via social networks and email will use **Privy.io**, which provides an **embedded Solana wallet**. However, since these wallets **start with zero balance**, they require special handling for gas fees and withdrawals.
+
+---
+
+### Issues & Solutions for Web2 Users
+
+| **Issue**                                            | **Solution**                                                          | **Implementation**                                                                      |
+| ---------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Privy Wallets Start Empty (No SOL for Gas Fees)**  | ✅ **Sponsor gas fees using a backend-controlled fee payer wallet.**  | The backend automatically covers transaction fees when Web2 users interact with Solana. |
+| **Users May Want to Withdraw to an External Wallet** | ✅ **Allow users to link and withdraw to a Phantom/Solflare wallet.** | Users can choose to withdraw DYAWN tokens to a manually entered Solana address.         |
+| **Privy Wallets Do Not Sync with External Wallets**  | ✅ **Provide an option for manual transfers.**                        | Users can transfer tokens from their Privy wallet to another wallet within the app.     |
+
+---
+
+### How Web2 Users Can Withdraw DYAWN Tokens
+
+- **User logs in with a Web2 account (Google, Twitter, Email) via Privy.io.**
+- **User purchases DYAWN using a Web2 payment method (USDT ERC20, TRC20, BTC, etc.).**
+- **DYAWN is credited to their Privy wallet (but they have no SOL for gas fees).**
+- **When the user requests a withdrawal, the backend sponsors the transaction fee.**
+- **The user chooses to withdraw to either:**
+
+✅ **Their Privy wallet** (if they want to keep using it).
+
+✅ **An external Phantom/Solflare wallet** (if they prefer full control).
+
+- **Tokens are transferred, and the user can now manage them in their chosen wallet.**
