@@ -212,3 +212,184 @@ Lets the admin add more tokens to the Referral Treasury within the supply cap li
 ```
 
 ```
+
+## 1. Why Manual Token Distribution is Preferred Over Automatic Distribution
+
+In the past, automatic token distribution seemed like a convenient approach for managers to handle allocations efficiently. However, after extensive research and industry experience, it is evident that most projects prefer manual distribution due to its security, flexibility, and control benefits.
+
+### ❌ Risks of Automatic Token Distribution
+
+#### 1️⃣ Unauthorized or Accidental Transfers
+
+An attacker could manipulate automatic distribution to steal funds.
+Manual distribution ensures tokens are only sent to verified wallets.
+
+#### 2️⃣ Incorrect Wallet Addresses for Off-Chain Investors
+
+Many early investors, partners, or advisors may not have provided their correct Solana wallets.
+If tokens are automatically sent to an invalid address, they may be permanently lost.
+Manual distribution ensures that all wallets are verified before sending tokens.
+
+#### 3️⃣ No Adjustments for Unsold Tokens
+
+Automatic distribution cannot adapt to changes if some presale tokens remain unsold.
+Unsold tokens should be reallocated for staking rewards, liquidity pools, or burned.
+Manual control ensures that excess tokens are handled properly.
+
+### ✅ Benefits of Manual Token Distribution
+
+#### 1️⃣ Flexibility for Tokenomics Adjustments
+
+Token allocations may change due to discussions with investors, partners, or the community.
+If tokens were automatically distributed, allocations would be locked, preventing any adjustments.
+Manual distribution allows real-time modifications before transferring tokens.
+
+#### 2️⃣ Control Over Timing of Distributions
+
+Instead of distributing all tokens at once, manual distribution allows for phased releases.
+This helps prevent market dumping and ensures a more stable price action.
+
+#### 3️⃣ Gradual Liquidity Addition
+
+Instead of immediately adding all tokens to DEX liquidity pools, manual distribution allows for:
+✅ Strategic liquidity injections to prevent excessive volatility.
+✅ Gradual releases to match market demand and maintain price stability.
+
+## 2. Why Do We Need a Separate "Main Token Contract" Instead of Just Using SPL Token Program?
+
+Your are correct that Solana’s SPL Token Program already includes essential token functions, such as:
+
+#### `InitializeMint → Creates the token`.
+
+#### `Burn → Allows token burning`.
+
+#### `Transfer → Moves tokens between accounts`.
+
+#### `Approve/Revoke → Manages spending allowances`.
+
+#### `SetAuthority → Changes token ownership`.
+
+#### `FreezeAccount/ThawAccount → Controls token freezing`.
+
+#### `CloseAccount → Closes token accounts`.
+
+So Why Do We Need a Separate "Main Token Contract"?\
+The SPL Token Program only provides basic token operations. However,\
+ it does not handle custom business logic such as:
+
+#### ✅ Custom Tokenomics Management ( for the future update)
+
+SPL tokens cannot enforce burn mechanisms based on trading volume or automated tax collection.
+The Main Token Contract can introduce features like:
+Automatic token burns based on transactions.
+Dynamic transaction fees for liquidity, staking, or referrals.
+
+#### ✅ Advanced Token Control Features
+
+SPL does not have built-in access control for admin-level functions.
+A custom contract allows role-based access, ensuring that only authorized accounts can:
+Adjust burn rates dynamically.
+Distribute marketing and staking rewards securely.
+
+#### ✅ Staking & Rewards System (for the future update)
+
+SPL does not support staking directly.
+The Main Token Contract can integrate staking logic, where users can:
+Lock their DYAWN tokens for staking rewards.
+Automatically receive staking rewards in DYAWN or another token.
+
+#### ✅ Custom Governance & Upgradeability
+
+SPL tokens are not upgradable.
+The Main Token Contract can be designed to allow governance proposals for community-driven upgrades.
+
+# **DYAWN Token Allocation Proposal**
+
+## **Overview**
+
+To ensure a balanced and sustainable token economy, we have revised the allocation strategy based on client feedback. The updated model improves liquidity, enhances referral incentives, and ensures staking rewards without relying solely on future fees.
+
+---
+
+## 3. Updated Token Distribution
+
+| **Category**                      | **Allocation (%)** | **Amount (Billion DYAWN)** | **Purpose**                                                                      |
+| --------------------------------- | ------------------ | -------------------------- | -------------------------------------------------------------------------------- |
+| **Sales (Private & Public)**      | 40%                | 3.28B                      | Tokens allocated for private and public sales, funding the project.              |
+| **Liquidity (DEX & CEX)**         | 30%                | 2.46B                      | Increased liquidity to support smooth trading and reduce volatility.             |
+| **Marketing & Partnerships**      | 10%                | 820M                       | Funds allocated for promotional campaigns, partnerships, and brand growth.       |
+| **Referral Program & Incentives** | 10%                | 820M                       | Supports referral rewards and incentive programs to encourage participation.     |
+| **Airdrop & Staking Rewards**     | 5%                 | 410M                       | Ensures early staking rewards and airdrop distribution for community engagement. |
+| **Development & Team**            | 5%                 | 410M                       | Reduced team allocation with a structured vesting period to maintain stability.  |
+
+---
+
+## 4. Response to Liquidity Wallet Funding Feedback
+
+What Does "Manual Funding" Mean?\
+Yes, manually funding a wallet means sending tokens manually from the admin wallet to a specific user or contract wallet instead of having an automated distribution system within a smart contract.
+
+### Presale Wallet (Smart Contract):
+
+Manually send tokens to presale account to prevent vulnerabilities and limit token exposure.
+Holds only the tokens necessary for the active presale.
+
+### Liquidity Wallets (Cold Storage for DEX & CEX):
+
+You are absolutely right!
+Liquidity Pools Need Immediate Allocation for Stability
+Should be funded directly after or during minting, not manually like the presale wallet.
+
+Adjusted Approach for Liquidity Wallet Funding
+🔹 Instead of manually sending tokens to liquidity wallets later, the required tokens should be allocated during the minting process and sent immediately to cold wallets for:
+
+- DEX Liquidity Provision (15%)
+- CEX Liquidity Reserves (15%)
+  During minting, allocate the full liquidity amount (30% total).
+  Immediately distribute:
+  15% to DEX liquidity wallet (to be used for Raydium, Orca, Serum).
+  15% to CEX liquidity wallet (reserved for exchange listings).
+  Cold wallets remain untouched until liquidity deployment begins.
+
+## Liquidity Allocation Strategy
+
+Instead of manually funding liquidity pools from the **Presale Smart Contract**, follow this structured plan:
+
+| **Stage**                | **Liquidity Allocation Action**                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| **During Minting**       | ✅ **Send 30% (or defined %) of tokens directly to Liquidity Wallets.**                  |
+| **Before Public Sale**   | ✅ **Lock part of the liquidity in a smart contract or multi-sig wallet.**               |
+| **At Listing Time**      | ✅ **Release funds to CEXs & DEX pools as needed (not manually from presale contract).** |
+| **After Trading Starts** | ✅ **Gradually inject liquidity into pools to stabilize price action.**                  |
+
+#### How Can We Send Tokens During Minting to DEX or CEX Wallets?
+
+✅ Yes, DEX and CEX wallets function the same as any other Solana wallet.
+✅ You can create and manage these wallets manually or through scripts.
+
+📌 How to Create and Fund Liquidity Wallets During Minting
+To ensure liquidity is available before trading starts, we need to:
+
+Create dedicated liquidity wallets for DEX & CEX allocations.
+Send tokens to these wallets during the minting process.
+
+##### 🔹 Step 1: Create DEX & CEX Liquidity Wallets
+
+These wallets are standard Solana wallets that hold liquidity tokens.
+
+✅ Option 1: Create Liquidity Wallets Manually
+Use Phantom, Solflare, or Solana CLI to generate two wallets:
+One for DEX liquidity (Raydium, Orca, Serum).
+One for CEX liquidity (for future exchange listings).
+These wallets will be used to hold liquidity before listing on exchanges.
+✅ Option 2: Automatically Create Wallets in Smart Contract
+You can also generate and assign liquidity wallets in a smart contract:
+
+✅ This ensures that liquidity wallets are generated automatically when minting begins.
+
+##### 🔹 Step 2: Send Liquidity Tokens During Minting
+
+Once liquidity wallets are created, they need to receive the allocated liquidity tokens.
+
+✅ Minting & Funding Liquidity Wallets During Token Creation
+When minting DYAWN tokens, you can immediately send a portion to DEX & CEX liquidity wallets.
