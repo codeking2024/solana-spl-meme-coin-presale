@@ -215,6 +215,64 @@ Lets the admin add more tokens to the Referral Treasury within the supply cap li
 
 ```
 
+# Dyawn Token Ecosystem
+
+## 1. Token Mint
+
+### Mint Contract (One-Time User)
+
+`Mints` 8.2 billion tokens once and `transfers` them to the `admin wallet`.
+Send `30% of tokens` directly to `Liquidity Wallets`. ( liquidity Wallet address required)
+`Disables minting` permanently to prevent further creation of tokens.
+🔹 Lifecycle:
+Used only once during token creation.
+Once tokens are minted and distributed, this contract is no longer needed.
+
+### Main Token Contract (Permanent Core Logic)
+
+Defines the DYAWN token and handles all future interactions.
+Responsible for token `transfers`, `burning`, and `ownership management`.
+
+🔹 Lifecycle:
+This contract runs forever as long as DYAWN exists.
+
+🔹 Key Features:
+✅ Handle token transfers between users.
+✅ Implements the burn function (users or admin can destroy tokens).
+✅ Maintains total supply and ensures compliance with Solana SPL standards.
+✅ Holds ownership controls (admin can execute limited actions like enabling/disabling features).
+
+- The Main Token Contract can be designed to allow governance proposals for community-driven upgrades.
+- The Main Token Contract can integrate staking logic, where users can:
+  Lock their DYAWN tokens for staking rewards.
+  Automatically receive staking rewards in DYAWN or another token.
+- The Main Token Contract can introduce features like:
+  Automatic token burns based on transactions.
+  Dynamic transaction fees for liquidity, staking, or referrals.
+  `setBurnRate and Burn Mechanism`
+
+## 2. Distribution of tokens according to tokenomics
+
+Tokens will be distributed into multiple wallets based on tokenomics allocation `manually`.
+
+Presale: 40% (3.28B tokens)
+
+Liquidity (DEX & CEX) 30% 2.46B => Already transffered while minting.
+
+• DEX Liquidity Provision (15%)
+
+• CEX Liquidity Reserves (15%) During minting, allocate the full liquidity amount (30% total). Immediately distribute: 15% to DEX liquidity wallet (to be used for Raydium, Orca, Serum). 15% to CEX liquidity wallet (reserved for exchange listings). Cold wallets remain untouched until liquidity deployment begins.
+
+Marketing & Partnerships: 10% (820M tokens)
+
+Referral Program & Incentives 10% 820M
+
+Airdrop & Staking Rewards: 5% 410M
+
+Development & Team 5% 410M
+
+Wallet addresses will be publicly shared for transparency.
+
 ## 1. Why Manual Token Distribution is Preferred Over Automatic Distribution
 
 In the past, automatic token distribution seemed like a convenient approach for managers to handle allocations efficiently. However, after extensive research and industry experience, it is evident that most projects prefer manual distribution due to its security, flexibility, and control benefits.
