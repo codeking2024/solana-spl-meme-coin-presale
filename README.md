@@ -248,7 +248,95 @@ This creates a token account (ADMIN_ATA) for the admin.
 
 Tokens are automatically sent to the admin’s associated token account.
 
-🔹 Step 4: Disable Minting (Revoke Authority)
+🔹 Step 4: Add MetaData
+
+```js
+import * as web3 from "@solana/web3.js";
+import {
+  createCreateMetadataAccountV3Instruction,
+  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
+} from "@metaplex-foundation/mpl-token-metadata";
+
+// ✅ Replace with your Mint Address (already created token)
+const MINT_ADDRESS = new web3.PublicKey(
+  "GUAU4kKNmJJeuKWaVsQbFVuAW9wb5swLPq3TB3PxjiHE"
+);
+
+// ✅ Replace with your Metadata Details
+const TOKEN_NAME = "Dyawn2025";
+const TOKEN_SYMBOL = "DYAWN";
+const IMAGE_URL =
+  "https://gateway.pinata.cloud/ipfs/bafkreifxxkkywltqbyn3djxi7j3rbdzlf6tpylj3gdtvqdcg4w42w3za4y"; // Upload JSON to IPFS/Arweave
+const DESCRIPTION = "This is my Solana token with metadata!";
+
+const main = async () => {
+  // ✅ Use Solana Playground's wallet and connection
+  const connection = pg.connection;
+  const wallet = pg.wallet;
+
+  console.log("Using Wallet:", wallet.publicKey.toBase58());
+
+  // ✅ Get Metadata PDA (Program Derived Address)
+  const [metadataPDA] = web3.PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("metadata"),
+      TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+      MINT_ADDRESS.toBuffer(),
+    ],
+    TOKEN_METADATA_PROGRAM_ID
+  );
+
+  console.log("Metadata PDA:", metadataPDA.toBase58());
+
+  // ✅ Create Metadata Instruction
+  const metadataInstruction = createCreateMetadataAccountV3Instruction(
+    {
+      metadata: metadataPDA,
+      mint: MINT_ADDRESS,
+      mintAuthority: wallet.publicKey,
+      payer: wallet.publicKey,
+      updateAuthority: wallet.publicKey,
+    },
+    {
+      createMetadataAccountArgsV3: {
+        data: {
+          name: TOKEN_NAME,
+          symbol: TOKEN_SYMBOL,
+          uri: IMAGE_URL, // JSON metadata link
+          sellerFeeBasisPoints: 0, // 0% fee
+          creators: null,
+          collection: null,
+          uses: null,
+        },
+        isMutable: true,
+        collectionDetails: null,
+      },
+    }
+  );
+
+  // ✅ Create and Sign the Transaction
+  const transaction = new web3.Transaction().add(metadataInstruction);
+  transaction.feePayer = wallet.publicKey;
+
+  // ✅ Get Latest Blockhash
+  const { blockhash } = await connection.getLatestBlockhash();
+  transaction.recentBlockhash = blockhash;
+
+  // ✅ Sign and Send Transaction using pg.wallet
+  const signedTransaction = await wallet.signTransaction(transaction);
+  const signature = await connection.sendRawTransaction(
+    signedTransaction.serialize()
+  );
+
+  console.log("✅ Metadata Added Successfully!");
+  console.log("Transaction Signature:", signature);
+};
+
+// Run the script
+main().catch(console.error);
+```
+
+🔹 Step 5: Disable Minting (Revoke Authority)
 
 `spl-token authorize <MINT_ADDRESS> mint --disable`
 
