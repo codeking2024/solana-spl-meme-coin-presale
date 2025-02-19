@@ -228,6 +228,30 @@ Send `30% of tokens` directly to `Liquidity Wallets`. ( liquidity Wallet address
 Used only once during token creation.
 Once tokens are minted and distributed, this contract is no longer needed.
 
+Solana Playground (https://beta.solpg.io/)
+
+🔹 Step 1: Create a New Token Mint
+
+`spl-token create-token --decimals 9`
+
+This will return a MINT_ADDRESS. Copy it!
+
+🔹 Step 2: Create the Admin Wallet’s Token Account
+
+`spl-token create-account <MINT_ADDRESS> --owner <ADMIN_WALLET_ADDRESS>`
+
+This creates a token account (ADMIN_ATA) for the admin.
+
+🔹 Step 3: Mint 8.2 Billion Tokens to the Admin Wallet
+
+`spl-token mint <MINT_ADDRESS> 8200000000 <ADMIN_ATA>`
+
+Tokens are automatically sent to the admin’s associated token account.
+
+🔹 Step 4: Disable Minting (Revoke Authority)
+
+`spl-token authorize <MINT_ADDRESS> mint --disable`
+
 ### Main Token Contract (Permanent Core Logic)
 
 Defines the DYAWN token and handles all future interactions.
