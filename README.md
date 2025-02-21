@@ -283,9 +283,9 @@ Users send USDT (TRC20, ERC20, BEP20, etc.) to an off-chain payment processor (l
 
 The system automatically converts those tokens into SOL or USDC on Solana.
 
-Backend monitors the merchant wallet for incoming SOL/USDC transactions.
+We do not do automatic conversion and transfer from web2 to SOL/USDC. We do not wait for this to complete.
 
-The transaction is validated (amount matches the user’s purchase request).
+As soon as payment processor confirms receipt of funds buyTokens() is calling.
 
 Generate a Solana Wallet for Each User in the Backend
 
