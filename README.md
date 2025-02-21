@@ -307,8 +307,7 @@ web2 / web3:
 
 - Record purchased tokens in a virtual wallet (pubkey, username and balance).
 
-  in the case of web3 user, they can just have pubkey and balance , username(if they set in the dashboard)
-  in the case of web2 user, they can have username and balance.
+they can just have pubkey and balance , username(if they set in the dashboard)
 
 - Auto-transitions between sale stages.
 
@@ -326,11 +325,6 @@ Since users cannot withdraw their tokens until the liquidity pool is created, we
 `set_pool_created()` - Admin Confirms Liquidity Pool Creation
 
 `withdraw_tokens()` - Users Withdraw After Pool Creation
-
-`link_wallet(username)` - find user's token info and update the pubkey
-
-in the case of web2 user, they need to link real solana wallet to their account on dashboard, and it will trigger a function on the presale contract to register wallet by username and it will find and update the null of pubkey to real address by user name.
-then they can withdraw tokens.
 
 ### 🔹 Implementing the Referral System
 
@@ -367,6 +361,18 @@ The admin should be able to change the referral rates at any time.
 
 - Only allowed after the liquidity pool is created.
 - Transfers referral rewards from the referral wallet to the referrer’s real wallet.
+
+### About Web2 payment system with privy wallet
+
+1. Backend requests Shkeeper to create an address (Deposit address of holding USDT token).
+
+2. User manually transfers USDT to the Shkeeper-provided address.
+
+3. shkeeper swaps USDT to Solana-compatible assets.
+
+4. Backend calls buy_tokens(web2) to assign tokens to the user’s Privy wallet.
+
+5. User connects wallet & withdraws tokens from contract.
 
 ### **After the presale**, unsold tokens are sent to the **liquidity wallet**.
 
