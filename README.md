@@ -357,7 +357,11 @@ The referral system needs to:
 
 - Referral rewards are stored in a virtual referral wallet.
 
-`withdraw_referral_rewards()`
+`withdraw_referral_rewards(regular_rate, influencer_rate)`
+
+`set_referral_rate()`
+
+The admin should be able to change the referral rates at any time.
 
 -- Allow Referrers to Claim Tokens
 
