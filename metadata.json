@@ -1,8 +1,8 @@
 {
-    "name": "Dawn Token",
-    "symbol": "DAWN",
-    "description": "This is my Solana MEME token with metadata!",
-    "image": "https://gateway.pinata.cloud/ipfs/bafybeifou3eum7vk2sn4n7m67rkahaoikqn3sz346ilq4m343srkynkysu",
+    "name": "Dyawn Token",
+    "symbol": "DYAWN",
+    "description": "This is my Solana MEME token with metadata!!",
+    "image": "https://gateway.pinata.cloud/ipfs/bafybeibrjr7kxqs6rbzv5qaouyquswyctbukhpdtbrt4t34yl3bzax2aya",
     "external_url": "https://dyawn.io",
     "attributes": [
       { "trait_type": "Category", "value": "Utility Token" }

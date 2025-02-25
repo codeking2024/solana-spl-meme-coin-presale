@@ -199,6 +199,7 @@ This contract facilitates a **token presale** with a **referral system**, allowi
 ✅ **Timed Sales**: Automatically transitions from private to public sale based on time.  
 ✅ **Supports SOL & USDC Payments**: Buyers can purchase tokens with SOL or USDC.  
 ✅ **Referral System**: Rewards referrers with tokens (5% for regular users, 10% for influencers).  
+✅ **Merchant Wallet**: Funds are collected in a **merchant-provided wallet**.  
 ✅ **Virtual Wallet Storage**: Purchased tokens are stored in a virtual wallet until withdrawal.  
 ✅ **Liquidity Management**: Unsold tokens are sent to a liquidity wallet.
 
@@ -208,27 +209,61 @@ The **admin** must initialize the contract before the presale begins.
 
 #### 📍 **Initialization Parameters**
 
-| Parameter               | Type  | Description                                                                        |
-| ----------------------- | ----- | ---------------------------------------------------------------------------------- |
-| `private_price`         | `u64` | Price per token in **Private Sale** (USD).                                         |
-| `public_price`          | `u64` | Price per token in **Public Sale**.                                                |
-| `private_sale_duration` | `i64` | **Duration of the Private Sale** in seconds (**Default: 15 days**).                |
-| `public_sale_duration`  | `i64` | **Duration of the Public Sale** in seconds (**Default: 60 days**, can be updated). |
+| Parameter                  | Type  | Description                                                                        |
+| -------------------------- | ----- | ---------------------------------------------------------------------------------- |
+| `private_price`            | `u64` | Price per token in **Private Sale** (USD).                                         |
+| `public_price`             | `u64` | Price per token in **Public Sale**.                                                |
+| `private_sale_duration`    | `i64` | **Duration of the Private Sale** in seconds (**Default: 15 days**).                |
+| `public_sale_duration`     | `i64` | **Duration of the Public Sale** in seconds (**Default: 60 days**, can be updated). |
+| `regular_referral_rate`    | `u8`  | **5% reward** for regular referrers                                                |
+| `influencer_referral_rate` | `u8`  | **10% reward** for influencers.                                                    |
 
-#### 📍 **Required Accounts**
+#### 📥 Required Accounts
 
-| Account Name       | Type                     | Mutable? | Description                                                  |
-| ------------------ | ------------------------ | -------- | ------------------------------------------------------------ |
-| `admin`            | `Signer`                 | ✅ Yes   | The **admin** (presale owner) initializing the contract.     |
-| `presale`          | `Account<Presale>`       | ✅ Yes   | The **presale storage account** (created on initialization). |
-| `token_mint`       | `Account<Mint>`          | ❌ No    | The **token mint** (DYAWN token).                            |
-| `presale_wallet`   | `Account<TokenAccount>`  | ✅ Yes   | Token account to **store presale tokens**.                   |
-| `referral_wallet`  | `Account<TokenAccount>`  | ✅ Yes   | Token account to **store referral rewards**.                 |
-| `liquidity_wallet` | `Account<SystemAccount>` | ❌ No    | Wallet where **unsold tokens** will be sent after presale.   |
-| `system_program`   | `Program<System>`        | ❌ No    | Solana system program (required).                            |
-| `token_program`    | `Program<Token>`         | ❌ No    | Solana token program (required).                             |
+The `initialize` function requires the following accounts:
 
----
+| **Name**                   | **Type**                   | **Mutable?** | **Signer?** | **Description**                                        |
+| -------------------------- | -------------------------- | ------------ | ----------- | ------------------------------------------------------ |
+| `admin`                    | `Signer`                   | ✅ Yes       | ✅ Yes      | The **admin wallet** that initializes the presale.     |
+| `presale`                  | `Account<Presale>`         | ✅ Yes       | ❌ No       | Stores presale details and controls presale state.     |
+| `token_mint`               | `Account<Mint>`            | ❌ No        | ❌ No       | The **SPL Token Mint** (e.g., DYAWN token).            |
+| `presale_wallet`           | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | Token account to **store presale tokens**.             |
+| `referral_wallet`          | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | Token account to **store referral rewards**.           |
+| `merchant_wallet`          | `SystemAccount`            | ✅ Yes       | ❌ No       | User-provided **merchant wallet** for fund collection. |
+| `liquidity_wallet`         | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | User-provided **token account** for unsold tokens.     |
+| `system_program`           | `Program<System>`          | ❌ No        | ❌ No       | Required system program for Solana transactions.       |
+| `token_program`            | `Program<Token>`           | ❌ No        | ❌ No       | Solana Token Program to handle token transfers.        |
+| `associated_token_program` | `Program<AssociatedToken>` | ❌ No        | ❌ No       | Required to create associated token accounts (ATA).    |
+
+```json
+{
+  "admin": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "privatePrice": "3500",
+  "publicPrice": "7000",
+  "privateSaleDuration": "15",
+  "publicSaleDuration": "60",
+  "saleStage": 0,
+  "totalSold": "0",
+  "poolCreated": false,
+  "presaleWallet": "EARXc58WswqbkTdzHxiY4phsKFjqcLnPx4VEGXQYNFFA",
+  "referralWallet": "64GGPouRcQem5188sthknrdXQJF9urJmBZTz7437X67J",
+  "liquidityWallet": "8LW7ngtPsm85WfiqxYwoqrPxCmaqvDmf4MXVfhWKiW8t",
+  "merchantWallet": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
+  "regularReferralRate": 5,
+  "influencerReferralRate": 10
+}
+```
+
+### PDA Security
+
+```rust
+require_keys_eq!(ctx.accounts.admin.key(), presale.admin, PresaleError::Unauthorized);
+// Compute the correct PDA based on the admin's key
+let expected_pda = Pubkey::find_program_address(&[PRESALE_SEED, ctx.accounts.admin.key().as_ref()], &crate::ID).0;
+
+// Ensure the provided presale account matches the expected PDA
+require_keys_eq!(ctx.accounts.presale.key(), expected_pda, PresaleError::InvalidPDA);
+```
 
 ### **Admin manually sends tokens** to:
 

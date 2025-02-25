@@ -407,7 +407,7 @@ pub struct Initialize<'info> {
     pub presale_token_account: Account<'info, TokenAccount>,
 
     #[account(init, payer = admin, token::mint = presale_token_mint, token::authority = presale)]
-    pub referral_treasury_account: Account<'info, TokenAccount>,
+    // pub referral_treasury_account: Account<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
