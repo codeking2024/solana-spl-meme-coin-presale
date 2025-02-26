@@ -310,7 +310,25 @@ Allow users to withdraw their tokens after pool created.
 
 `check_presale_token_balance()` - Check Available Presale Tokens
 
-`check_reward_token_balance()` - Check Available Referral
+---
+
+### **2️⃣ `check_presale_token_balance()`**
+
+**📌 Description:**  
+Retrieves the number of **available presale tokens**.
+
+**📌 Logic:**
+
+- **Checks the total presale wallet balance**.
+- **Subtracts tokens already sold** from the total available supply.
+- **Returns the remaining tokens available for purchase**.
+
+**📌 Usage:**  
+This function **does not require parameters** and can be called by anyone.
+
+---
+
+`check_reward_token_balance()` - Check Available Referral (Not Ready Yet)
 
 -- Update sale price at any time
 
@@ -321,6 +339,27 @@ If in Private Sale (sale_stage == 1), it updates the private sale price.
 If in Public Sale (sale_stage == 2), it updates the public sale price.
 
 Fails if called outside an active sale stage.
+
+---
+
+### **3️⃣ `update_sale_price(new_price)`**
+
+**📌 Description:**  
+Allows the **admin** to update the sale price at any time.
+
+**📌 Parameters:**  
+| **Name** | **Type** | **Description** |
+|-------------|---------|----------------|
+| `new_price` | `u64` | The updated token sale price. |
+
+**📌 Logic:**
+
+- **Ensures only the admin can call this function**.
+- **Updates `private_price` or `public_price`** based on the current sale stage.
+- **Updates `current_price`** so that new purchases use the updated price.
+- **Emits an event** to track price changes.
+
+---
 
 --Buy tokens by sol and usdc
 
@@ -341,6 +380,131 @@ Instead, store balances off-chain (e.g., Firebase, PostgreSQL, IPFS) and:
 Only store the total sold on-chain.
 
 Let buyers query the backend for their balance.
+
+### **1️⃣ `buy_tokens(payment_type, lamports_sent, sol_price_in_usd)`**
+
+**📌 Description:**  
+Allows users to purchase tokens using SOL or USDC.
+
+**📌 Parameters:**  
+| **Name** | **Type** | **Description** |
+|-------------------|---------|----------------|
+| `payment_type` | `u8` | Payment type: `0` for Web3 (SOL), `1` for Web2 (USDC). |
+| `lamports_sent` | `u64` | The amount of SOL sent by the buyer. |
+| `sol_price_in_usd` | `u64` | The current SOL price in USD. |
+
+**📌 Logic:**
+
+- Ensures the **presale is active** before allowing purchases.
+- **Converts SOL to USD** to determine how many tokens the user can buy.
+- **Checks token availability** before confirming the purchase.
+- **If using Web3 (`SOL`), it transfers funds to the merchant wallet**.
+- **Updates `total_sold`** to track token purchases.
+- **Emits an event** for tracking purchases.
+
+```json
+{
+  "buyer": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "tokensPurchased": "166",
+  "solSpent": "5000000",
+  "solPriceInUsd": "200",
+  "paymentType": 0
+}
+```
+
+---
+
+### ✅ What the Backend Should Do After Emitting Events
+
+Backend Responsibilities
+
+✅ Listen for BuyTokensEvent from Solana.
+
+Solana provides websocket RPC subscriptions that allow you to listen for contract events in real-time.
+
+⏳ Listening for BuyTokensEvent...
+
+🔔 New BuyTokensEvent Detected!
+
+📝 Logs: Buyer 0xBuyer123 purchased 1000 tokens
+
+✅ Buyer: 0xBuyer123, Tokens Purchased: 1000
+
+✅ Store the buyer’s wallet address and purchased token amount in a database.
+
+✅ Allow users to call withdraw_tokens() when the liquidity pool is ready.
+
+💾 Storing purchase in DB -> Buyer: 0xBuyer123, Tokens: 1000
+
+| **Buyer Address** | **Token Balance** | **Payment Type** | **Timestamp** | **isWithdrawal** |
+| ----------------- | ----------------- | ---------------- | ------------- | ---------------- |
+| `0xBuyer123...`   | `1000`            | `Web2`           | `2024-02-26`  | false            |
+| `0xBuyer456...`   | `500`             | `Web3`           | `2024-02-26`  | true             |
+
+**Example JSON Record:**
+
+```json
+{
+  "buyer_address": "0xBuyer123...",
+  "token_balance": 1000,
+  "payment_type": "Web2",
+  "timestamp": "2024-02-26",
+  "withdrawn": false
+}
+```
+
+### Why this way?
+
+#### ✅ Problem With Storing User Balances On-Chain
+
+- Solana Accounts Have Limited Storage
+
+  Maximum Account Size = ~10 KB (without rent exemption).
+
+  If every user’s balance is stored on-chain, the presale contract could quickly exceed storage limits as more users participate.
+
+- Expensive & Inefficient
+  Writing to on-chain accounts costs more compute units.
+
+  More users = Higher transaction costs & storage overhead.
+
+### Best Way to Handle Many Users Buying Tokens at the Same Time?
+
+✅ WebSockets (onLogs()) for real-time tracking.
+
+✅ RabbitMQ/Kafka queue for smooth processing.
+
+✅ Solana Indexer API for backup (every 5 min).
+
+✅ Database optimized for fast writes (batch insert, indexing).
+
+### 🚀 How to Secure the withdraw_tokens() Function Against Scammers?
+
+Since the withdrawal process relies on off-chain storage (backend DB), we need strong security measures to prevent unauthorized withdrawals.
+
+The best way to secure the withdrawal process is to use a signed message (JWT or cryptographic signature) from the backend.
+
+#### 📌 1️⃣ User Logs In with Web3 Wallet
+
+#### 📌 2️⃣ User Requests a Withdrawal
+
+- The user requests a withdrawal through the frontend.
+
+- The backend verifies their stored balance before approving the request.
+
+- The backend signs the request.
+
+Uses a Solana wallet private key for signing (Not a weak string-based secret).
+
+Prevents replay attacks by adding a timestamp check.
+
+The signature is now generated using Solana’s standard signing methods!
+
+Frontend Calls withdraw_tokens() with the Signed Message
+
+Smart contract verifies that the signature is from the backend.
+
+Users cannot fake withdrawals since they need a valid signature.
 
 ### web2 payment method
 
@@ -656,8 +820,8 @@ There is no need for backend detection because the transaction is executed on-ch
 
 ---
 
-✅ **Step 3 (conversion) must be acknowledged as a time-consuming process.**  
-✅ **Step 4 (detecting SOL/USDC) happens after conversion is completed, not before.**  
+✅ **Step 3 (conversion) must be acknowledged as a time-consuming process.**
+✅ **Step 4 (detecting SOL/USDC) happens after conversion is completed, not before.**
 ✅ **Step 5 ensures DYAWN tokens are only distributed once the funds are received.**
 
 ## 10. Handling Web2 Users & Privy.io Wallets
@@ -689,3 +853,7 @@ Web2 users who log in via social networks and email will use **Privy.io**, which
 ✅ **An external Phantom/Solflare wallet** (if they prefer full control).
 
 - **Tokens are transferred, and the user can now manage them in their chosen wallet.**
+
+```
+
+```
