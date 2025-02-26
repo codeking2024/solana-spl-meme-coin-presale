@@ -202,6 +202,62 @@ pub mod presale {
         Ok(())
     }
 
+    pub fn check_presale_token_balance(ctx: Context<CheckPresaleTokenBalance>) -> Result<u64> {
+        let presale = &ctx.accounts.presale;
+        let available_tokens = ctx.accounts.presale_wallet.amount;
+
+        // Calculate remaining tokens after sold tokens
+        let remaining_tokens = available_tokens - (presale.total_sold * 1_000_000_000); // Adjust for decimals
+
+        msg!("Available presale tokens: {}", remaining_tokens);
+
+        Ok(remaining_tokens)
+    }
+
+    pub fn update_sale_price(ctx: Context<UpdateSalePrice>, new_price: u64) -> Result<()> {
+        let presale = &mut ctx.accounts.presale;
+
+        // ✅ Ensure the caller is the admin
+        require!(
+            presale.admin == ctx.accounts.admin.key(),
+            PresaleError::Unauthorized
+        );
+
+        // ✅ Ensure the presale is active
+        require!(
+            presale.sale_stage == 1 || presale.sale_stage == 2,
+            PresaleError::PresaleNotActive
+        );
+
+        // ✅ Update price based on the current sale stage
+        match presale.sale_stage {
+            1 => {
+                presale.private_price = new_price;
+                presale.current_price = new_price; // Update active price if in Private Sale
+            }
+            2 => {
+                presale.public_price = new_price;
+                presale.current_price = new_price; // Update active price if in Public Sale
+            }
+            _ => return Err(PresaleError::PresaleNotActive.into()),
+        }
+
+        // ✅ Emit an event to track price changes
+        emit!(UpdateSalePriceEvent {
+            admin: ctx.accounts.admin.key(),
+            new_price,
+            sale_stage: presale.sale_stage,
+        });
+
+        msg!(
+            "Sale price updated to {} for stage {}",
+            new_price,
+            presale.sale_stage
+        );
+
+        Ok(())
+    }
+
 }
 
 #[derive(Accounts)]
@@ -303,6 +359,33 @@ pub struct BuyTokens<'info> {
     pub system_program: Program<'info, System>, // Required for SOL transfer
 }
 
+#[derive(Accounts)]
+pub struct CheckPresaleTokenBalance<'info> {
+    #[account(
+        mut,
+        seeds = [PRESALE_SEED, presale.admin.as_ref()],
+        bump,
+    )]
+    pub presale: Account<'info, Presale>, // Presale storage PDA
+
+    #[account(mut)]
+    pub presale_wallet: Account<'info, TokenAccount>, // Store presale tokens
+}
+
+#[derive(Accounts)]
+pub struct UpdateSalePrice<'info> {
+    #[account(mut)]
+    pub admin: Signer<'info>, // Only the admin can update the price
+
+    #[account(
+        mut,
+        has_one = admin, // Ensures only the admin can update
+        seeds = [PRESALE_SEED, admin.key().as_ref()],
+        bump
+    )]
+    pub presale: Account<'info, Presale>,
+}
+
 #[account]
 pub struct Presale {
     pub admin: Pubkey,              // Admin wallet address
@@ -332,6 +415,13 @@ pub struct BuyTokensEvent {
     pub payment_type: u8,
 }
 
+#[event]
+pub struct UpdateSalePriceEvent {
+    pub admin: Pubkey,
+    pub new_price: u64,
+    pub sale_stage: u8,
+}
+
 #[error_code]
 pub enum PresaleError {
     #[msg("Invalid rate: Percentage must be between 0 and 100.")]
@@ -358,9 +448,13 @@ pub enum PresaleError {
     #[msg("Insufficient SOL sent for purchase.")]
     InsufficientFunds,
 
-    #[msg("Invalid payment type.")]
+    #[msg("Invalid payment type. Please choose 1 or 2")]
     InvalidPaymentType,
 
     #[msg("Invalid price: SOL Amount in Usd must be over than $1.")]
     InvalidPrice, // ✅ New error for minimum SOL price check
+
+    #[msg("Unauthorized: Only the presale admin can perform this action.")]
+    // ✅ New admin-only error
+    Unauthorized,
 }
