@@ -238,15 +238,17 @@ The `initialize` function requires the following accounts:
 ```json
 {
   "admin": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "presaleStart": "1740465949",
   "privatePrice": "3500",
   "publicPrice": "7000",
+  "currentPrice": "3500",
   "privateSaleDuration": "15",
   "publicSaleDuration": "60",
   "saleStage": 0,
   "totalSold": "0",
   "poolCreated": false,
-  "presaleWallet": "EARXc58WswqbkTdzHxiY4phsKFjqcLnPx4VEGXQYNFFA",
-  "referralWallet": "64GGPouRcQem5188sthknrdXQJF9urJmBZTz7437X67J",
+  "presaleWallet": "4nuqy6We6hCwGkUGcK8tVTKCejkqQP98L6fb8KM3BvTi",
+  "referralWallet": "452TFDMzUfTPPnBD7X34LoADYX2fgC1tBgpYTDW79m4x",
   "liquidityWallet": "8LW7ngtPsm85WfiqxYwoqrPxCmaqvDmf4MXVfhWKiW8t",
   "merchantWallet": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
   "regularReferralRate": 5,
@@ -270,9 +272,9 @@ require_keys_eq!(ctx.accounts.presale.key(), expected_pda, PresaleError::Invalid
 - `presale_wallet` (**for presale purchases**).
 - `referral_wallet` (**for referral rewards**).
 
-### Admin calls `set_stage(1)`** to start the **private sale\*\*.
+### Admin calls `set_stage()`** to start the **private sale\*\*.
 
-### Sale Stage Transition Logic
+#### - Sale Stage Transition Logic
 
 0 - Not Started: Initial state until the admin starts the presale.
 
@@ -281,6 +283,16 @@ require_keys_eq!(ctx.accounts.presale.key(), expected_pda, PresaleError::Invalid
 2 - Public Sale: Automatically starts after 15 days.
 
 3 - Ended: Automatically ends after 60 days of public sale.
+
+#### - Update sale stage and period
+
+✅ Admin-Only update_sale_period() – Allowing flexible duration updates.
+
+`update_sale_period()`
+
+✅ Secure Sale Stage Transitions – Moving from Not Started → Private → Public → Ended.
+
+`set_stage()`
 
 ### Buy Tokens with Sol / USDC
 
@@ -312,6 +324,24 @@ Fails if called outside an active sale stage.
 
 --Buy tokens by sol and usdc
 
+Since Solana accounts have a max size limit of ~10KB, we can store approximately:
+
+10 buyers → 10 \* 40 = 400 bytes
+
+100 buyers → 100 \* 40 = 4,000 bytes (~4KB)
+
+200 buyers → 200 \* 40 = 8,000 bytes (~8KB)
+
+🔥 Solution if You Expect 1000+ Buyers
+
+If you expect thousands of buyers, storing balances on-chain is inefficient.
+
+Instead, store balances off-chain (e.g., Firebase, PostgreSQL, IPFS) and:
+
+Only store the total sold on-chain.
+
+Let buyers query the backend for their balance.
+
 ### web2 payment method
 
 Users send USDT (TRC20, ERC20, BEP20, etc.) to an off-chain payment processor (like Shkeeper.io).
@@ -326,7 +356,7 @@ Generate a Solana Wallet for Each User in the Backend
 
 Shkeeper.io triggers the Presale Contract’s `buyTokens()` / `buy_tokens_by_usdc` function automatically with generated wallet address.
 
-`buy_tokens(payment_type)` - Sol payment
+`buy_tokens(payment_type, lamports_sent, sol_price_in_usd )` - Sol payment
 
 `buy_tokens_by_usdc(payment_type)` - USDC Payment
 
