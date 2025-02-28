@@ -414,6 +414,96 @@ Allows users to purchase tokens using SOL or USDC.
 
 ---
 
+## **💰 Buy Tokens with USDC (`buy_tokens_by_stable_coin`)**
+
+### **📌 Function Overview**
+
+This function allows users to buy tokens using **USDC** during the presale.
+
+- **Web3 Buyers (`payment_type = 0`)** send USDC to merchant and update total sold, withdraw later.
+- **Web2 Buyers (`payment_type = 1`)** update total sold and withdraw later
+
+### **📥 Required Parameters**
+
+| **Name**             | **Type** | **Description**                                                                  |
+| -------------------- | -------- | -------------------------------------------------------------------------------- |
+| `payment_type`       | `u8`     | `0 = Web3 (First USDC Transfer and stored balance)`, `1 = Web2 (Stored Balance)` |
+| `stable_coin_amount` | `u64`    | Amount of **USDC** sent for the purchase.                                        |
+
+---
+
+### **📥 Required Accounts**
+
+| **Account Name**               | **Type**                | **Mutable?** | **Description**                            |
+| ------------------------------ | ----------------------- | ------------ | ------------------------------------------ |
+| `buyer`                        | `Signer`                | ✅ Yes       | The **user** purchasing tokens.            |
+| `presale`                      | `Account<Presale>`      | ✅ Yes       | Stores presale details and total sales.    |
+| `presale_wallet`               | `Account<TokenAccount>` | ✅ Yes       | **Storage wallet** for presale tokens.     |
+| `buyer_stable_coin_account`    | `Account<TokenAccount>` | ✅ Yes       | Buyer's **USDC token account**.            |
+| `merchant_stable_coin_account` | `Account<TokenAccount>` | ✅ Yes       | **Merchant’s wallet** to receive USDC.     |
+| `stable_coin_mint`             | `Account<Mint>`         | ❌ No        | The **mint address** for USDC.             |
+| `token_program`                | `Program<Token>`        | ❌ No        | Solana **Token Program** for transactions. |
+
+---
+
+### **🛠️ Function Logic**
+
+1️⃣ **Ensure Only USDC is Used**
+
+- Rejects any token **other than USDC**.
+
+2️⃣ **Check if Presale is Active**
+
+- Only allows purchases during **private or public sale stages**.
+
+3️⃣ **Convert USDC to Token Amount**
+
+- Uses the **current token price** to determine how many tokens the user gets.
+
+4️⃣ **Ensure Enough Tokens Exist**
+
+- Prevents over-purchasing when token supply is low.
+
+5️⃣ **Process Payment & Token Transfer**
+
+- ✅ **Web3 (`payment_type = 0`)**: Transfers USDC to **merchant wallet** immediately and **Stores purchase data off-chain** for later withdrawal.
+- ✅ **Web2 (`payment_type = 1`)**: **Stores purchase data off-chain** for later withdrawal.
+
+  Update total Sold on the contract.
+
+6️⃣ **Emit an Event for Backend Tracking**
+
+- **Stores purchase details** in the backend for buyers.
+
+### **📢 Events**
+
+| **Event Name**               | **Triggered When**             |
+| ---------------------------- | ------------------------------ |
+| `BuyTokensByStableCoinEvent` | A user buys tokens using USDC. |
+
+#### **📌 Event Structure (`BuyTokensByStableCoinEvent`)**
+
+```rust
+#[event]
+pub struct BuyTokensByStableCoinEvent {
+    pub buyer: Pubkey,
+    pub tokens_purchased: u64,
+    pub stable_coin_amount: u64,
+    pub payment_type: u8, // 0 = Web3, 1 = Web2 (Stored for withdrawal)
+}
+```
+
+```json
+{
+  "buyer": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "tokensPurchased": "2857",
+  "stableCoinAmount": "10",
+  "paymentType": 0
+}
+```
+
+---
+
 ### ✅ What the Backend Should Do After Emitting Events
 
 Backend Responsibilities
