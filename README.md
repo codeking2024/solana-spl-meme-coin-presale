@@ -4,14 +4,17 @@
 
 ## 1. Token Mint
 
-### Mint Contract (One-Time User)
+### 1.1 Token Mint Logic
 
-`Mints` 8.2 billion tokens once and `transfers` them to the `admin wallet`.
-Send `30% of tokens` directly to `Liquidity Wallets`. ( liquidity Wallet address required)
-`Disables minting` permanently to prevent further creation of tokens.
-🔹 Lifecycle:
-Used only once during token creation.
-Once tokens are minted and distributed, this contract is no longer needed.
+- `Mints` 8.2 billion tokens once and `transfers` them to the `admin wallet`.
+
+- Set Meta information of token.
+
+- `Disables minting` permanently to prevent further creation of tokens.
+
+### 1.2 Token Mint using solana command
+
+🔹 Tools:
 
 Solana Playground (https://beta.solpg.io/)
 
@@ -33,7 +36,7 @@ This creates a token account (ADMIN_ATA) for the admin.
 
 Tokens are automatically sent to the admin’s associated token account.
 
-🔹 Step 4: Add MetaData
+🔹 Step 4: Add MetaData on web3 script
 
 ```js
 import * as web3 from "@solana/web3.js";
@@ -127,27 +130,73 @@ main().catch(console.error);
 
 ## 2. Distribution of tokens according to tokenomics
 
-Tokens will be distributed into multiple wallets based on tokenomics allocation `manually`.
+The token distribution will be **manually allocated** to multiple wallets based on the tokenomics model.
 
-Presale: 40% (3.28B tokens)
+For full transparency, all wallet addresses will be **publicly shared**.
 
-Liquidity (DEX & CEX) 30% 2.46B => Already transffered while minting.
+### 2.1 **Token Allocation Breakdown**
 
-• DEX Liquidity Provision (15%)
+Total Supply: **8.2 Billion Tokens**
 
-• CEX Liquidity Reserves (15%) During minting, allocate the full liquidity amount (30% total). Immediately distribute: 15% to DEX liquidity wallet (to be used for Raydium, Orca, Serum). 15% to CEX liquidity wallet (reserved for exchange listings). Cold wallets remain untouched until liquidity deployment begins.
+| Category                          | Allocation (%) | Token Amount |
+| --------------------------------- | -------------- | ------------ |
+| **Presale**                       | 40%            | **3.28B**    |
+| **Liquidity (DEX & CEX)**         | 30%            | **2.46B**    |
+| **Marketing & Partnerships**      | 10%            | **820M**     |
+| **Referral Program & Incentives** | 10%            | **820M**     |
+| **Airdrop & Staking Rewards**     | 5%             | **410M**     |
+| **Development & Team**            | 5%             | **410M**     |
 
-Marketing & Partnerships: 10% (820M tokens)
+---
 
-Referral Program & Incentives 10% 820M
+#### 🔹 **Liquidity (DEX & CEX) - 30% (2.46B Tokens)**
 
-Airdrop & Staking Rewards: 5% 410M
+- **DEX Liquidity Provision (15%)** - **Allocated to decentralized exchanges** like **Raydium, Orca, Serum**.
+- **CEX Liquidity Reserves (15%)** - **Stored in cold wallets** for future centralized exchange listings.
 
-Development & Team 5% 410M
+---
 
-Wallet addresses will be publicly shared for transparency.
+#### 🔹 **Presale - 40% (3.28B Tokens)**
 
-### Why Manual Token Distribution is Preferred Over Automatic Distribution
+- Tokens will be distributed **manually** to presale participants based on their purchase allocations.
+
+---
+
+#### 🔹 **Marketing & Partnerships - 10% (820M Tokens)**
+
+- **Used for promotions, influencer collaborations, partnerships, and community growth.**
+
+---
+
+#### 🔹 **Referral Program & Incentives - 10% (820M Tokens)**
+
+- **Rewards for users who refer others during the presale.**
+- **Incentives for early adopters and ecosystem participants.**
+
+---
+
+#### 🔹 **Airdrop & Staking Rewards - 5% (410M Tokens)**
+
+- **Airdrops** to the community and early supporters.
+- **Staking rewards** for users who stake tokens in the ecosystem.
+
+---
+
+#### 🔹 **Development & Team - 5% (410M Tokens)**
+
+- **Funding for continued development, upgrades, and team compensation.**
+- **Ensures long-term project sustainability.**
+
+---
+
+### 📌 **Transparency & Public Wallets**
+
+- All **wallet addresses** for each category **will be shared publicly**.
+- The **community can verify allocations and transactions** on the Solana blockchain.
+
+---
+
+### 2.2 FAQ: Why Manual Token Distribution is Preferred Over Automatic Distribution
 
 In the past, automatic token distribution seemed like a convenient approach for managers to handle allocations efficiently. However, after extensive research and industry experience, it is evident that most projects prefer manual distribution due to its security, flexibility, and control benefits.
 
@@ -191,32 +240,33 @@ Instead of immediately adding all tokens to DEX liquidity pools, manual distribu
 
 ## 3. Presale contract
 
-This contract facilitates a **token presale** with a **referral system**, allowing users to purchase tokens with **SOL or USDC** during **private and public sale stages**. The contract ensures fair allocation and **secure fund management**, including support for **unsold token transfers** and **referral rewards**.
+This contract facilitates a **token presale** with a **referral system**, allowing users to purchase tokens with **SOL or USDC** during **private and public sale stages**.
 
-### 📌 Features
+The contract ensures fair allocation and **secure fund management**, including support for **unsold token transfers** and **referral rewards**.
+
+### 📌 3.1 Features
 
 ✅ **Two-Stage Presale**: Private sale (15 days) followed by a public sale (60 days).  
-✅ **Timed Sales**: Automatically transitions from private to public sale based on time.  
 ✅ **Supports SOL & USDC Payments**: Buyers can purchase tokens with SOL or USDC.  
 ✅ **Referral System**: Rewards referrers with tokens (5% for regular users, 10% for influencers).  
 ✅ **Merchant Wallet**: Funds are collected in a **merchant-provided wallet**.  
-✅ **Virtual Wallet Storage**: Purchased tokens are stored in a virtual wallet until withdrawal.  
+✅ **Virtual Wallet Storage**: Purchased tokens are stored in a virtual wallet until withdrawal after pool is created.  
 ✅ **Liquidity Management**: Unsold tokens are sent to a liquidity wallet.
 
-### 🛠️ Contract Initialization
+### 🛠️ 3.2 Contract Initialization
 
 The **admin** must initialize the contract before the presale begins.
 
 #### 📍 **Initialization Parameters**
 
-| Parameter                  | Type  | Description                                                                        |
-| -------------------------- | ----- | ---------------------------------------------------------------------------------- |
-| `private_price`            | `u64` | Price per token in **Private Sale** (USD).                                         |
-| `public_price`             | `u64` | Price per token in **Public Sale**.                                                |
-| `private_sale_duration`    | `i64` | **Duration of the Private Sale** in seconds (**Default: 15 days**).                |
-| `public_sale_duration`     | `i64` | **Duration of the Public Sale** in seconds (**Default: 60 days**, can be updated). |
-| `regular_referral_rate`    | `u8`  | **5% reward** for regular referrers                                                |
-| `influencer_referral_rate` | `u8`  | **10% reward** for influencers.                                                    |
+| Parameter                  | Type  | Description                                                             |
+| -------------------------- | ----- | ----------------------------------------------------------------------- |
+| `private_price`            | `u64` | Price per token in **Private Sale**, default value is `3500 = $0.0035`. |
+| `public_price`             | `u64` | Price per token in **Public Sale** default value is `7000 = $0.007`.    |
+| `private_sale_duration`    | `i64` | **Duration of the Private Sale** in days (**Default: `15` days**)       |
+| `public_sale_duration`     | `i64` | **Duration of the Public Sale** in days (**Default: `60` days**)        |
+| `regular_referral_rate`    | `u8`  | **5% reward** for regular referrers (**Default: `5` %**)                |
+| `influencer_referral_rate` | `u8`  | **10% reward** for influencers. (**Default: `10` %**)                   |
 
 #### 📥 Required Accounts
 
@@ -230,49 +280,50 @@ The `initialize` function requires the following accounts:
 | `presale_wallet`           | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | Token account to **store presale tokens**.             |
 | `referral_wallet`          | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | Token account to **store referral rewards**.           |
 | `merchant_wallet`          | `SystemAccount`            | ✅ Yes       | ❌ No       | User-provided **merchant wallet** for fund collection. |
-| `liquidity_wallet`         | `Account<TokenAccount>`    | ✅ Yes       | ❌ No       | User-provided **token account** for unsold tokens.     |
 | `system_program`           | `Program<System>`          | ❌ No        | ❌ No       | Required system program for Solana transactions.       |
 | `token_program`            | `Program<Token>`           | ❌ No        | ❌ No       | Solana Token Program to handle token transfers.        |
 | `associated_token_program` | `Program<AssociatedToken>` | ❌ No        | ❌ No       | Required to create associated token accounts (ATA).    |
 
+##### Accounts Information on DevNet for web3 developer
+
 ```json
 {
-  "admin": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
-  "presaleStart": "1740465949",
-  "privatePrice": "3500",
-  "publicPrice": "7000",
-  "currentPrice": "3500",
-  "privateSaleDuration": "15",
-  "publicSaleDuration": "60",
-  "saleStage": 0,
-  "totalSold": "0",
-  "poolCreated": false,
-  "presaleWallet": "4nuqy6We6hCwGkUGcK8tVTKCejkqQP98L6fb8KM3BvTi",
-  "referralWallet": "452TFDMzUfTPPnBD7X34LoADYX2fgC1tBgpYTDW79m4x",
-  "liquidityWallet": "8LW7ngtPsm85WfiqxYwoqrPxCmaqvDmf4MXVfhWKiW8t",
-  "merchantWallet": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
-  "regularReferralRate": 5,
-  "influencerReferralRate": 10
+  "presaleWallet": "37ftMxCS9RKe9UW1XugxQTfeaBacgsVvoQBuh8eXaRPQ",
+  "referralWallet": "DWdWVPktgZAtgyEH9djvVMrHnS9zSkitpwCYx3CJY5fa",
+  "merchantWallet": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN"
 }
 ```
 
-### PDA Security
+##### Presale Account Sample Data
 
-```rust
-require_keys_eq!(ctx.accounts.admin.key(), presale.admin, PresaleError::Unauthorized);
-// Compute the correct PDA based on the admin's key
-let expected_pda = Pubkey::find_program_address(&[PRESALE_SEED, ctx.accounts.admin.key().as_ref()], &crate::ID).0;
-
-// Ensure the provided presale account matches the expected PDA
-require_keys_eq!(ctx.accounts.presale.key(), expected_pda, PresaleError::InvalidPDA);
+```json
+{
+  "admin": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "presaleStart": "1740727333",
+  "privatePrice": "3500",
+  "publicPrice": "7000",
+  "currentPrice": "3500",
+  "privateSaleDuration": "1296000",
+  "publicSaleDuration": "5184000",
+  "saleStage": 0,
+  "totalSold": "0",
+  "referralCharged": "0",
+  "poolCreated": false,
+  "presaleWallet": "37ftMxCS9RKe9UW1XugxQTfeaBacgsVvoQBuh8eXaRPQ",
+  "referralWallet": "DWdWVPktgZAtgyEH9djvVMrHnS9zSkitpwCYx3CJY5fa",
+  "merchantWallet": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
+  "regularReferralRate": 5,
+  "influencerReferralRate": 10,
+  "bump": 255
+}
 ```
 
-### **Admin manually sends tokens** to:
+### 3.3 **Admin manually sends tokens** to:
 
-- `presale_wallet` (**for presale purchases**).
-- `referral_wallet` (**for referral rewards**).
+- `presale_wallet` (**for presale purchases**) 3.28B.
+- `referral_wallet` (**for referral rewards**) 820M.
 
-### Admin calls `set_stage()`** to start the **private sale\*\*.
+### 3.4 Admin calls `set_stage()`** to start the **private sale\*\*.
 
 #### - Sale Stage Transition Logic
 
@@ -284,65 +335,86 @@ require_keys_eq!(ctx.accounts.presale.key(), expected_pda, PresaleError::Invalid
 
 3 - Ended: Automatically ends after 60 days of public sale.
 
+✅ Secure Sale Stage Transitions
+
+Moving from Not Started 0→ Private 1 → Public 2 → Ended 3.
+
+#### Presale Data Updated after calling the function `set_stage()`
+
+```json
+{
+  "presaleStart": "1740728133", // Private Sale Started
+  "currentPrice": "3500", // Private Sale Price
+  "saleStage": 1 // Private Sale Period
+}
+```
+
 #### - Update sale stage and period
 
 ✅ Admin-Only update_sale_period() – Allowing flexible duration updates.
 
-`update_sale_period()`
+`update_sale_period(new_private_sale_duration, new_public_sale_duration)`
 
-✅ Secure Sale Stage Transitions – Moving from Not Started → Private → Public → Ended.
+##### Presale Data updated after calling the function `update_sale_period(1, 10)`
 
-`set_stage()`
+```json
+{
+  "privateSaleDuration": "86400", // Private Sale 1 day
+  "publicSaleDuration": "864000" // Public Sale 10 days
+}
+```
 
-### Buy Tokens with Sol / USDC
+### 3.5 Users Buy Tokens with Sol / USDC
 
 Since purchased tokens cannot be sent directly to the buyer’s wallet and must instead be stored in a virtual wallet (backend-managed), the contract must:
 
 Track purchased tokens per user (without sending them to their real wallet).
 
-Allow users to withdraw their tokens after pool created.
+Allow users to withdraw their tokens after pool created in the end of presale.
 
--- Tracking token balance
+#### - Tracking token balance
 
-✅ Allows the admin to track available tokens in real-time.
+✅ Allows the users or admin to track available tokens in real-time.
 
 ✅ Users can verify if tokens are available before purchasing or withdrawing rewards.
 
-`check_presale_token_balance()` - Check Available Presale Tokens
-
----
-
-### **2️⃣ `check_presale_token_balance()`**
+#### `check_presale_token_balance()` and `check_reward_token_balance()`
 
 **📌 Description:**  
-Retrieves the number of **available presale tokens**.
+Retrieves the number of **available presale tokens** and **reward tokens**.
 
 **📌 Logic:**
 
-- **Checks the total presale wallet balance**.
+- **Checks the total presale wallet, referral wallet balance**.
 - **Subtracts tokens already sold** from the total available supply.
 - **Returns the remaining tokens available for purchase**.
 
 **📌 Usage:**  
 This function **does not require parameters** and can be called by anyone.
 
+**Accounts necessary for calling these functions**
+
+```json
+{
+  "presale": "AN9eR7s6rfEcR7Ue5J3nW3EDFGjT2EWHimFW5j17uarQ",
+  "presaleWallet": "37ftMxCS9RKe9UW1XugxQTfeaBacgsVvoQBuh8eXaRPQ",
+  "referralWallet": "DWdWVPktgZAtgyEH9djvVMrHnS9zSkitpwCYx3CJY5fa"
+}
+```
+
 ---
 
-`check_reward_token_balance()` - Check Available Referral (Not Ready Yet)
+#### Update sale price at any time with `update_sale_price()`
 
--- Update sale price at any time
+- Admin Updates Current Sale Price
 
-`update_sale_price()` - Admin Updates Current Sale Price
+- If in Private Sale (sale_stage == 1), it updates the private sale price.
 
-If in Private Sale (sale_stage == 1), it updates the private sale price.
-
-If in Public Sale (sale_stage == 2), it updates the public sale price.
+- If in Public Sale (sale_stage == 2), it updates the public sale price.
 
 Fails if called outside an active sale stage.
 
----
-
-### **3️⃣ `update_sale_price(new_price)`**
+### `update_sale_price(new_price)`
 
 **📌 Description:**  
 Allows the **admin** to update the sale price at any time.
@@ -359,9 +431,28 @@ Allows the **admin** to update the sale price at any time.
 - **Updates `current_price`** so that new purchases use the updated price.
 - **Emits an event** to track price changes.
 
+after calling `update_sale_price(6000)`
+
+```json
+{
+  "privatePrice": "6000",
+  "currentPrice": "6000"
+}
+```
+
+UpdateSalePriceEvent
+
+```json
+{
+  "admin": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "newPrice": "6000",
+  "saleStage": 1
+}
+```
+
 ---
 
---Buy tokens by sol and usdc
+### Buy tokens by sol and usdc
 
 Since Solana accounts have a max size limit of ~10KB, we can store approximately:
 
@@ -375,23 +466,25 @@ Since Solana accounts have a max size limit of ~10KB, we can store approximately
 
 If you expect thousands of buyers, storing balances on-chain is inefficient.
 
-Instead, store balances off-chain (e.g., Firebase, PostgreSQL, IPFS) and:
+Instead, store balances off-chain (e.g., Database) and:
 
 Only store the total sold on-chain.
 
 Let buyers query the backend for their balance.
 
-### **1️⃣ `buy_tokens(payment_type, lamports_sent, sol_price_in_usd)`**
+### **`buy_tokens(payment_type, lamports_sent, sol_price_in_usd, referrer, is_influencer)`**
 
 **📌 Description:**  
-Allows users to purchase tokens using SOL or USDC.
+Allows users to purchase tokens using SOL.
 
 **📌 Parameters:**  
 | **Name** | **Type** | **Description** |
 |-------------------|---------|----------------|
 | `payment_type` | `u8` | Payment type: `0` for Web3 (SOL), `1` for Web2 (USDC). |
-| `lamports_sent` | `u64` | The amount of SOL sent by the buyer. |
-| `sol_price_in_usd` | `u64` | The current SOL price in USD. |
+| `lamports_sent` | `u64` | The amount of SOL sent by the buyer. (`1000000000 = 1 sol`) |
+| `sol_price_in_usd` | `u64` | The current SOL price in USD. (`200 = $200`)|
+| `referrer` | `pubkey` | The referrer wallet address(optional). (`if no referrer,11111111111111111111111111111111`) |
+| `is_influencer` | `u64` | `True` if the referrer is influencer |
 
 **📌 Logic:**
 
@@ -400,7 +493,10 @@ Allows users to purchase tokens using SOL or USDC.
 - **Checks token availability** before confirming the purchase.
 - **If using Web3 (`SOL`), it transfers funds to the merchant wallet**.
 - **Updates `total_sold`** to track token purchases.
-- **Emits an event** for tracking purchases.
+- **If there is a referrer** it will update the value of `referral_charged`
+- **Emits an event** for tracking purchases and referral information.
+
+#### BuyTokensEvent and ReferralRewardEvent
 
 ```json
 {
@@ -410,11 +506,19 @@ Allows users to purchase tokens using SOL or USDC.
   "solPriceInUsd": "200",
   "paymentType": 0
 }
+
+{
+  "referrer": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
+  "referredBuyer": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "rewardAmount": "16",
+  "isInfluencer": true
+}
+
 ```
 
 ---
 
-## **💰 Buy Tokens with USDC (`buy_tokens_by_stable_coin`)**
+### **💰 Buy Tokens with USDC (`buy_tokens_by_stable_coin`)**
 
 ### **📌 Function Overview**
 
@@ -425,10 +529,12 @@ This function allows users to buy tokens using **USDC** during the presale.
 
 ### **📥 Required Parameters**
 
-| **Name**             | **Type** | **Description**                                                                  |
-| -------------------- | -------- | -------------------------------------------------------------------------------- |
-| `payment_type`       | `u8`     | `0 = Web3 (First USDC Transfer and stored balance)`, `1 = Web2 (Stored Balance)` |
-| `stable_coin_amount` | `u64`    | Amount of **USDC** sent for the purchase.                                        |
+| **Name**             | **Type** | **Description**                                                                            |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `payment_type`       | `u8`     | `0 = Web3 (First USDC Transfer and stored balance)`, `1 = Web2 (Stored Balance)`           |
+| `stable_coin_amount` | `u64`    | Amount of **USDC** sent for the purchase.                                                  |
+| `referrer`           | `pubkey` | The referrer wallet address(optional). (`if no referrer,11111111111111111111111111111111`) |
+| `is_influencer`      | `bool`   | `True` if the referrer is influencer                                                       |
 
 ---
 
@@ -469,40 +575,85 @@ This function allows users to buy tokens using **USDC** during the presale.
 - ✅ **Web3 (`payment_type = 0`)**: Transfers USDC to **merchant wallet** immediately and **Stores purchase data off-chain** for later withdrawal.
 - ✅ **Web2 (`payment_type = 1`)**: **Stores purchase data off-chain** for later withdrawal.
 
-  Update total Sold on the contract.
+  Update total Sold and referral Out on the contract.
 
 6️⃣ **Emit an Event for Backend Tracking**
 
-- **Stores purchase details** in the backend for buyers.
+- **Stores purchase and reward details** in the backend for buyers.
 
 ### **📢 Events**
 
 | **Event Name**               | **Triggered When**             |
 | ---------------------------- | ------------------------------ |
 | `BuyTokensByStableCoinEvent` | A user buys tokens using USDC. |
+| `ReferralRewardEvent`        | Referral Reward Event          |
 
 #### **📌 Event Structure (`BuyTokensByStableCoinEvent`)**
-
-```rust
-#[event]
-pub struct BuyTokensByStableCoinEvent {
-    pub buyer: Pubkey,
-    pub tokens_purchased: u64,
-    pub stable_coin_amount: u64,
-    pub payment_type: u8, // 0 = Web3, 1 = Web2 (Stored for withdrawal)
-}
-```
 
 ```json
 {
   "buyer": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
-  "tokensPurchased": "2857",
+  "tokensPurchased": "1666",
   "stableCoinAmount": "10",
   "paymentType": 0
+}
+
+{
+  "referrer": "Eb1dAwq9f1tLVjVY2TUrAPLous5J4UuftN5ymxE1hTnN",
+  "referredBuyer": "BQUHqj6LgS3846f4mTguhN6SRrTLucy1ggGGcefZr9ww",
+  "rewardAmount": "16",
+  "isInfluencer": true
+}
+
+```
+
+#### `set_referral_rate(regular_referral_rate, influencer_referral_rate)`
+
+Admin can update the referral rate from 1 to 100.
+
+```json
+{
+  "regularReferralRate": 50, // 50%
+  "influencerReferralRate": 100 // 100%
 }
 ```
 
 ---
+
+### 3.6 Finalize Presale
+
+The `finalize_presale` function is used by the **admin** to **finalize the presale** after it has ended. This function:
+
+- ✅ **Ensures the presale is fully completed before finalizing.**
+- ✅ **Transfers any remaining unsold tokens** to the liquidity wallet.
+- ✅ **Moves unclaimed referral rewards** to the liquidity wallet.
+- ✅ **Marks the liquidity pool as created.**
+- ✅ **Emits an event for tracking.**
+
+🔹 How It Works
+
+#### 1️⃣ Verifies that the caller is the admin.
+
+#### 2️⃣ Checks if the presale has ended (sale_stage == 3).
+
+#### 3️⃣ Ensures the liquidity pool has not already been created.
+
+#### 4️⃣ Calculates the remaining unsold tokens and referral rewards.
+
+#### 5️⃣ Transfers tokens to the liquidity wallet.
+
+#### 6️⃣ Marks the liquidity pool as created.
+
+#### 7️⃣ Emits an event for tracking the finalization.
+
+```json
+{
+  "saleStage": 3,
+  "totalSold": "1998",
+  "referralCharged": "99",
+  "poolCreated": true
+}
+```
 
 ### ✅ What the Backend Should Do After Emitting Events
 
